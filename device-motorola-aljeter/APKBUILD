@@ -1,0 +1,52 @@
+# Reference: <https://postmarketos.org/devicepkg>
+pkgname=device-motorola-aljeter
+pkgdesc="Motorola Moto G6 Play"
+pkgver=0.1
+pkgrel=0
+url="https://postmarketos.org"
+license="MIT"
+arch="armv7"
+subpackages="$pkgname-nonfree-firmware:nonfree_firmware"
+options="!check !archcheck"
+depends="
+	msm-fb-refresher
+	linux-motorola-aljeter
+	mesa-dri-gallium
+	mkbootimg
+	postmarketos-base
+"
+makedepends="devicepkg-dev"
+source="
+	deviceinfo
+	local.start
+	fb.modes
+	directfbrc
+"
+
+build() {
+	devicepkg_build $startdir $pkgname
+}
+
+package() {
+	devicepkg_package $startdir $pkgname
+
+	install -Dm755 "$srcdir"/local.start \
+		"$pkgdir"/etc/local.d/00-"$pkgname".start
+
+	install -Dm644 "$srcdir"/fb.modes \
+			"$srcdir"/directfbrc \
+		-t "$pkgdir"/etc
+}
+
+nonfree_firmware() {
+	pkgdesc="$pkgdesc firmware"
+	depends="firmware-motorola-aljeter-wcnss firmware-motorola-aljeter-modem firmware-motorola-aljeter-venus firmware-motorola-aljeter-adsp"
+	mkdir "$subpkgdir"
+}
+
+sha512sums="
+1c636848520311e78076117dfef2e4eae047e5000b268d510b1d08b0a79bbc8d16a9f40c0c9053d0a5b72b88cfdda1387e05da34213b63aecc633e9168067bd3  deviceinfo
+113fba2bb7915e1d261ac59294e2b36f9a1f56d08aaa3769036eea4037309aa4428b2a99f7c64d4fd0dc10d4373de6fb454aa1d59fcbda7de48e9f6b9c13b9a5  local.start
+f2f40d1a249fa1ef7e53593ace62483f16086b1030b6e3104d609066333a01c420aaa11793c474671b34276eee57062649bd84a64c493a88d117b0b3f9a6c132  fb.modes
+3db3ec596e159be926ea2b5b2496c18e9bc7be24a64a232a56c89a0c9ee710aa2efb2b6fa9fc08efa34759e8242e6c629d08a4ce688ec8aa125830717c191515  directfbrc
+"

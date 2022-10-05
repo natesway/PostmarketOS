@@ -1,0 +1,206 @@
+SectionVerb {
+	EnableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='PRI_MI2S_RX Audio Mixer MultiMedia1' 1"
+		cset "name='MultiMedia1 Mixer TERT_MI2S_TX' 1"
+	]
+
+	DisableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='PRI_MI2S_RX Audio Mixer MultiMedia1' 0"
+		cset "name='MultiMedia1 Mixer TERT_MI2S_TX' 0"
+	]
+
+	Value {
+		TQ "HiFi"
+		PlaybackPCM "hw:msm8952sndcard,0"
+		CapturePCM "hw:msm8952sndcard,0"
+	}
+
+}
+
+SectionDevice."Earpiece" {
+	Comment "Handset Rx device"
+
+	ConflictingDevice [
+		"Headphones"
+	]
+
+	EnableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='RX1 MIX1 INP1' RX1"
+		cset "name='RDAC2 MUX' RX1"
+		cset "name='RX1 Digital Volume' 84"
+		cset "name='EAR PA Gain' POS_6_DB"
+		cset "name='EAR_S' Switch"
+	]
+
+	DisableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='RX1 MIX1 INP1' ZERO"
+		cset "name='RDAC2 MUX' ZERO"
+		cset "name='RX1 Digital Volume' 84"
+		cset "name='EAR PA Gain' POS_6_DB"
+		cset "name='EAR_S' ZERO"
+	]
+
+	Value {
+		PlaybackChannels "2"
+	}
+
+}
+
+SectionDevice."Speaker" {
+	Comment "Speaker Rx device"
+
+	ConflictingDevice [
+		"Earpiece"
+	]
+
+	EnableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='RX3 MIX1 INP1' RX1"
+		cset "name='SPK' Switch"
+	]
+
+	DisableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='RX3 MIX1 INP1' ZERO"
+		cset "name='SPK' ZERO"
+		cset "name='RX3 Digital Volume' 84"
+	]
+
+	Value {
+		PlaybackChannels "2"
+		PlaybackVolume "RX3 Digital"
+	}
+
+}
+
+SectionDevice."Headphones" {
+	Comment "Headset Rx device"
+
+	ConflictingDevice [
+		"Earpiece"
+	]
+
+	EnableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='MI2S_RX Channels' Two"
+		cset "name='RX1 MIX1 INP1' RX1"
+		cset "name='RX2 MIX1 INP1' RX2"
+		cset "name='RDAC2 MUX' RX2"
+		cset "name='HPHL' Switch"
+		cset "name='HPHR' Switch"
+	]
+
+	DisableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='MI2S_RX Channels' One"
+		cset "name='RX1 MIX1 INP1' ZERO"
+		cset "name='RX2 MIX1 INP1' ZERO"
+		cset "name='RDAC2 MUX' ZERO"
+		cset "name='HPHL' ZERO"
+		cset "name='HPHR' ZERO"
+	]
+
+	Value {
+		PlaybackChannels "2"
+	}
+
+}
+
+SectionDevice."HeadsetMic" {
+	Comment "Headset Tx device"
+
+	ConflictingDevice [
+		"HandsetMic"
+	]
+
+	EnableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='ADC2 Volume' 6"
+		cset "name='DEC1 MUX' ADC2"
+		cset "name='ADC2 MUX' INP2"
+		cset "name='IIR1 INP1 MUX' DEC1"
+	]
+
+	DisableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='ADC2 Volume' 4"
+		cset "name='DEC1 MUX' ZERO"
+		cset "name='ADC2 MUX' ZERO"
+	]
+
+	Value {
+		CaptureChannels "1"
+	}
+
+}
+
+SectionDevice."HandsetMic" {
+	Comment "Handset Tx device"
+
+	ConflictingDevice [
+		"HeadsetMic"
+	]
+
+	EnableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='ADC1 Volume' 6"
+		cset "name='DEC1 MUX' ADC1"
+		cset "name='IIR1 INP1 MUX' DEC1"
+	]
+
+	DisableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='ADC1 Volume' 4"
+		cset "name='DEC1 MUX' ZERO"
+	]
+
+	Value {
+		CaptureChannels "1"
+	}
+
+}
+
+SectionModifier."PlayVoice" {
+#	Comment "Low latency path for voice"
+
+	SupportedDevice [
+		"Earpiece"
+		"Headphones"
+		"Speaker"
+	]
+
+	EnableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='PRI_MI2S_RX Audio Mixer MultiMedia5' 1"
+	]
+
+	DisableSequence [
+		cdev "hw:msm8952sndcard"
+
+		cset "name='PRI_MI2S_RX Audio Mixer MultiMedia5' 0"
+	]
+
+	Value {
+		PlaybackPCM "hw:msm8952sndcard,12"
+		CapturePCM "hw:msm8952sndcard,12"
+	}
+
+}
+

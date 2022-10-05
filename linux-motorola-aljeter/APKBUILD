@@ -1,0 +1,84 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+
+pkgname=linux-motorola-aljeter
+pkgver=3.18.120
+pkgrel=0
+pkgdesc="Motorola Moto G6 Play kernel fork"
+arch="armv7"
+_carch="arm"
+_flavor="motorola-aljeter"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="
+	bash
+	bc
+	bison
+	devicepkg-dev
+	dtbtool
+	flex
+	openssl-dev
+	perl
+"
+
+# Source
+_repository="android_kernel_motorola_msm8937"
+_commit="76e1edafb527d1fd4ddbe90f81e600374d5e48a4"
+_primacommit="20249c2d7ab77066c41cf6e9c6fc4d78971869ed"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/jeterdevelopment/$_repository/archive/$_commit.tar.gz
+	$pkgname-prima-$_primacommit.tar.gz::https://github.com/MotorolaMobilityLLC/vendor-qcom-opensource-wlan-prima/archive/$_primacommit.tar.gz
+	$_config
+	fix-xorg-mdss-update-fb-info.patch
+	gcc10-extern_YYLOC_global_declaration.patch
+"
+builddir="$srcdir/$_repository-$_commit"
+_primadir="$srcdir/vendor-qcom-opensource-wlan-prima-$_primacommit"
+_outdir="out"
+
+prepare() {
+	default_prepare
+	. downstreamkernel_prepare
+}
+
+build() {
+	unset LDFLAGS
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		-C "$builddir" M="$_primadir" CONFIG_PRONTO_WLAN=m \
+		CONFIG_QCOM_TDLS=y CONFIG_WLAN_OFFLOAD_PACKETS=y \
+		CONFIG_PRIMA_WLAN_LFR=y CONFIG_PRIMA_WLAN_LFR_MBB=y \
+		CONFIG_WLAN_FEATURE_11W=y CONFIG_ENABLE_LINUX_REG=y \
+		CONFIG_PRIMA_WLAN_OKC=y CONFIG_PRIMA_WLAN_11AC_HIGH_TP=y \
+		KERNEL_BUILD=1 WLAN_ROOT="$_primadir" modules
+
+	# Master DTB (deviceinfo_bootimg_qcdt)
+	dtbTool -p scripts/dtc/ -o "$_outdir/arch/$_carch/boot"/dt.img \
+		"$_outdir/arch/$_carch/boot/"
+}
+
+package() {
+	downstreamkernel_package "$builddir" "$pkgdir" "$_carch" "$_flavor" "$_outdir"
+
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS" \
+		INSTALL_MOD_PATH="$pkgdir" INSTALL_MOD_STRIP=1 modules_install
+
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		-C "$builddir" M="$_primadir" INSTALL_MOD_PATH="$pkgdir" \
+		INSTALL_MOD_STRIP=1 M="$_primadir" modules_install
+
+	install -Dm644 "$_outdir/arch/$_carch/boot"/dt.img \
+		"$pkgdir"/boot/dt.img
+}
+
+sha512sums="
+359a777f693c079f49753af0b6472d29877ff77c7887367d3ecff9d113d1a75d7b9f76e4870c1d37a7abdba3dc3e263663ab58e7f10d7ceb469d45b627750429  linux-motorola-aljeter-76e1edafb527d1fd4ddbe90f81e600374d5e48a4.tar.gz
+013450b746e241087c662f12aaa6f569bb18cc6844194728a32144ae4f472844ead2f9d813e9edfc521dade86e122d2967cc86d00a7958e516261f4a8daa91ae  linux-motorola-aljeter-prima-20249c2d7ab77066c41cf6e9c6fc4d78971869ed.tar.gz
+64d65736330e3248bea1fe6142b6b72dada054f0e31fe22e4ed169d8d554b9832054f5b6ed39555071d829fe4d1ab2888edca481a515089f146cb527ca3c519a  config-motorola-aljeter.armv7
+a277af28a718f5caf94257005393aa92d62c96110a8ec6368ff62f2e0d871b69c56c4ce00174db637204d53fa63ad3a79b8d6141713dca0878e1f06fe0379caa  fix-xorg-mdss-update-fb-info.patch
+2b48f1bf0e3f70703d2cdafc47d5e615cc7c56c70bec56b2e3297d3fa4a7a1321d649a8679614553dde8fe52ff1051dae38d5990e3744c9ca986d92187dcdbeb  gcc10-extern_YYLOC_global_declaration.patch
+"

@@ -1,0 +1,74 @@
+pkgname=firmware-motorola-aljeter
+pkgver=1
+pkgrel=0
+_commit=dad967e72baf2816fa41939df40daef6ed0523d9
+pkgdesc="Firmware for Motorola G6 Play"
+url="https://github.com/NHellFire/aljeter_firmware"
+subpackages="$pkgname-modem $pkgname-venus $pkgname-wcnss $pkgname-adsp"
+arch="armv7"
+license="proprietary"
+options="!check !strip !archcheck !tracedeps pmb:cross-native"
+source="
+	https://github.com/NHellFire/aljeter_firmware/archive/$_commit.zip
+	load-wlan-module.initd
+	wcnss-wlan.confd
+	ucm/HiFi
+	ucm/msm8952-snd-car.conf
+	ucm/audio.rules
+"
+builddir="$srcdir/aljeter_firmware-$_commit"
+
+_fwdir="/lib/firmware/postmarketos"
+
+package() {
+	mkdir -p "$pkgdir"
+}
+
+modem() {
+	pkgdesc="Motorola Moto G6 Play modem firmware"
+	install -Dm644 "$builddir"/mba.mbn -t "$subpkgdir/$_fwdir"
+	install -Dm644 "$builddir"/modem.* -t "$subpkgdir/$_fwdir"
+}
+
+venus() {
+	pkgdesc="Motorola Moto G6 Play video firmware"
+	install -Dm644 "$builddir"/venus.* -t "$subpkgdir/$_fwdir"
+}
+
+wcnss() {
+	pkgdesc="Motorola Moto G6 Play WiFi/BT firmware"
+	depends="wcnss-wlan"
+	install="$subpkgname.post-install $subpkgname.post-upgrade"
+
+	install -Dm644 "$builddir"/wcnss.* -t "$subpkgdir/$_fwdir"
+	install -Dm644 "$builddir"/wlan/prima/WCNSS_* -t "$subpkgdir/$_fwdir"/wlan/prima
+
+	install -Dm755 "$srcdir"/load-wlan-module.initd \
+		"$subpkgdir"/etc/init.d/load-wlan-module
+
+	install -Dm644 "$srcdir"/wcnss-wlan.confd \
+		"$subpkgdir"/etc/conf.d/wcnss-wlan
+}
+
+adsp() {
+	depends="adsp-audio alsa-utils alsa-ucm-conf"
+	pkgdesc="Motorola Moto G6 Play audio firmware"
+	install -Dm644 "$builddir"/adsp.* -t "$subpkgdir/$_fwdir"
+
+
+	install -Dm644 "$srcdir"/msm8952-snd-car.conf \
+		"$srcdir"/HiFi \
+		-t "$subpkgdir"/usr/share/alsa/ucm2/msm8952-snd-car/
+
+	install -Dm644 "$srcdir"/audio.rules \
+		"$subpkgdir"/usr/lib/udev/rules.d/90-"$pkgname".rules
+}
+
+sha512sums="
+7873ccaea50a1e765f5f2fb099bea6a5833824c0c94a8b226f4bc1309d81285747dc893eccaccab9e27164e8b488d1f32b4558bd630356d8093dd690dd3ff88d  dad967e72baf2816fa41939df40daef6ed0523d9.zip
+22339e8b1c854e740034fe305d8447a88f7be98f8f2ef86b7e9ea6e373a30643993d95865c820df6c3598605d3390eb93a859c7a423f04de54a3b06a69adcb55  load-wlan-module.initd
+a8cfde9dd3bc96d990038443e8d10a551f13536f017992ae23545d2f1e09b0f729e5cfd1f94f52a2a335335172f082925b91c980695a27f76f636343de795898  wcnss-wlan.confd
+cd2511e76882a99c3d7b0ac2bf36df6a77e874f7fa01efc16d72c858865c947ba1b6f700f75deadb44106c6ef7b950461124d339ce6eaeca83db02b106fe08f8  HiFi
+a904c4773bf65baa00005e07272eb3bafbb5cdfefa2fd0acb2aa6838bdaf52862236c3ad1ef1afecc4bb1e80ac64abd340610599a87be89a49046214936a4396  msm8952-snd-car.conf
+5b738b06daa420c1ddefe4245703412551d0d067211ffeff6f268079be0677a06087c4fd610be12e1d30772a83385b83a26776ee0ed5f022ba565a80d8c0dd86  audio.rules
+"

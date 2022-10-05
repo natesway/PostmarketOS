@@ -1,0 +1,2 @@
+ATTRS{id}=="msm8952sndcard", RUN+="/usr/bin/alsaucm -c msm8952-snd-card set _verb HiFi set _enadev Headphones"
+

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Unblank screen (fixes touchscreen not working)
+# Doing this in an initfs hook was too early, so we'll do it
+# as a service rather than adding an arbitrary delay
+echo 0 > /sys/class/graphics/fb0/blank
